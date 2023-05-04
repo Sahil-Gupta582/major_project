@@ -1,0 +1,42 @@
+PREEMPTIVE FRAMEWORK - MCT CODE EXPLANATION
+---------------------------------------------
+
+The given code is an implementation of a job scheduler that schedules jobs based on their priority and their dependencies. The code consists of two classes: `Job` and `Scheduler`.
+
+The `Job` class represents a job that needs to be scheduled. It has the following attributes:
+- `name`: a string representing the name of the job.
+- `priority`: an integer representing the priority of the job.
+- `duration`: an integer representing the duration of the job in seconds.
+- `energy`: an integer representing the amount of energy required to run the job.
+- `depends_on`: a set of other `Job` objects that this job depends on. If a job depends on another job, it cannot be run until the other job has finished.
+- `start_time`: a float representing the time at which the job was started.
+- `finished`: a boolean indicating whether the job has finished running.
+
+The `Job` class also has a `__lt__` method, which is used to compare two jobs based on their priority and their estimated duration (duration * energy). This method is used by the `heapq` module to implement a priority queue.
+
+The `Scheduler` class is responsible for scheduling the jobs. It has the following attributes:
+- `job_queue`: a priority queue of `Job` objects that need to be scheduled.
+- `dependent_jobs`: a list of `Job` objects that depend on other jobs and need to be run before the job at the top of the `job_queue`.
+- `running_job`: a `Job` object that is currently being run.
+- `current_time`: a float representing the current time in seconds.
+- `current_energy`: an integer representing the amount of energy currently available.
+
+The `Scheduler` class has the following methods:
+- `add_job(job)`: adds a `Job` object to the `job_queue`.
+- `add_dependent_jobs(job)`: adds all jobs that depend on the given `job` to the `dependent_jobs` list.
+- `run()`: runs the scheduler loop. The loop runs until there are no more jobs in the `job_queue`. In each iteration of the loop, the job at the top of the `job_queue` is removed and processed. If the job has no dependencies, it is run immediately. If it has dependencies, the dependent jobs are run first. The `current_energy` attribute is used to check if there is enough energy to run a job. If there is not enough energy, the scheduler waits until enough energy becomes available.
+
+The code also includes two helper functions:
+- `create_job(name, duration, priority, energy)`: creates a `Job` object with the given `name`, `duration`, `priority`, and `energy`.
+- `create_jobs(jobs_dict)`: creates a list of `Job` objects from a dictionary of job information. The dictionary should have job names as keys and job information (duration, priority, energy, and dependencies) as values. Dependencies should be specified as a set of job names.
+
+Finally, the code creates a dictionary of jobs and their information, shuffles the jobs, creates a `Scheduler` object, adds the jobs to the `job_queue`, and runs the scheduler. During the scheduler loop, the status of each job is printed to the console.
+
+
+In the given code, the current energy available is stored in the `current_energy` attribute of the `Scheduler` class. The initial value of `current_energy` is set to 10.
+
+When a job is executed, the `Scheduler` checks if there is enough energy to run the job. If the job's duration is greater than the current energy available, the job cannot be executed immediately, and the `Scheduler` waits for the energy to be restored. 
+
+The `Scheduler` waits for the energy to be restored by sleeping for the duration of time equal to the energy needed to run the job, which is calculated as `energy_needed = job.duration - self.current_energy`. After the energy is restored, the `current_energy` attribute is updated to its initial value of 10. 
+
+On the other hand, if the job's duration is less than or equal to the current energy available, the job is executed immediately, and the `current_energy` attribute is decremented by the job's duration.

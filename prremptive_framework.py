@@ -3,25 +3,32 @@ import time
 import random
 
 class Job:
-    def __init__(self, name, priority, duration, depends_on=None):
+    def __init__(self, name, priority, duration, energy, depends_on=None):
         self.name = name
         self.priority = priority
         self.duration = duration
+        self.energy = energy
         self.depends_on = depends_on or set()
         self.start_time = None
         self.finished = False
 
     def __lt__(self, other):
-        return self.priority < other.priority
+        if self.priority != other.priority:
+            return self.priority < other.priority
+        else:
+            return (self.duration * self.energy) < (other.duration * other.energy)
+
 
 class Scheduler:
     def __init__(self):
         self.job_queue = []
         self.dependent_jobs = []
-        self.running_job = None  # Added running_job attribute
+        self.running_job = None
+        self.current_time = 0  # Added current_time attribute
+        self.current_energy = 10  # Added current_energy attribute
 
     def add_job(self, job):
-        heapq.heappush(self.job_queue, job)  # Add job to priority queue
+        heapq.heappush(self.job_queue, job)
 
     def add_dependent_jobs(self, job):
         for dependent_job in self.job_queue:
@@ -30,30 +37,50 @@ class Scheduler:
 
     def run(self):
         while self.job_queue:
-            highest_priority_job = heapq.heappop(self.job_queue)  # Get job with highest priority
+            highest_priority_job = heapq.heappop(self.job_queue)
 
             self.add_dependent_jobs(highest_priority_job)
 
             if not self.dependent_jobs:
-                if self.running_job is not None:  # Interrupt running job if a higher priority job comes in
+                if self.running_job is not None:
                     print(f"Interrupting job '{self.running_job.name}' with priority {self.running_job.priority} and duration {self.running_job.duration}...")
                     heapq.heappush(self.job_queue, self.running_job)
                 self.running_job = highest_priority_job
-                print(f"Running job '{highest_priority_job.name}' with priority {highest_priority_job.priority} and duration {highest_priority_job.duration}...")
-                time.sleep(highest_priority_job.duration)
-                print(f"Job '{highest_priority_job.name}' completed in {highest_priority_job.duration} seconds.")
+
+                # Check if there is enough energy to run the job
+                if highest_priority_job.duration > self.current_energy:
+                    print(f"Not enough energy to run job '{highest_priority_job.name}'. Waiting for energy...")
+                    energy_needed = highest_priority_job.duration - self.current_energy
+                    self.current_energy = 0
+                    time.sleep(energy_needed)  # Wait for energy to be available
+                    self.current_energy = 10  # Energy is restored
+                else:
+                    print(f"Running job '{highest_priority_job.name}' with priority {highest_priority_job.priority} and duration {highest_priority_job.duration}...")
+                    self.current_energy -= highest_priority_job.duration
+                    time.sleep(highest_priority_job.duration)
+                    print(f"Job '{highest_priority_job.name}' completed in {highest_priority_job.duration} seconds.")
                 self.running_job = None
             else:
                 print(f"Checking job '{highest_priority_job.name}' with priority {highest_priority_job.priority} and duration {highest_priority_job.duration}...")
                 for dependent_job in self.dependent_jobs:
                     print(f"  Running dependent job '{dependent_job.name}' with priority {dependent_job.priority} and duration {dependent_job.duration}...")
-                    time.sleep(dependent_job.duration)
-                    print(f"  Dependent job '{dependent_job.name}' completed in {dependent_job.duration} seconds.")
+                    if dependent_job.duration > self.current_energy:
+                        print(f"Not enough energy to run job '{dependent_job.name}'. Waiting for energy...")
+                        energy_needed = dependent_job.duration - self.current_energy
+                        self.current_energy = 0
+                        time.sleep(energy_needed)  # Wait for energy to be available
+                        self.current_energy = 10  # Energy is restored
+                    else:
+                        self.current_energy -= dependent_job.duration
+                        time.sleep(dependent_job.duration)
+                        print(f"  Dependent job '{dependent_job.name}' completed in {dependent_job.duration} seconds.")
                 heapq.heappush(self.job_queue, highest_priority_job)
                 self.dependent_jobs = []
 
-def create_job(name, duration, priority):
-    return Job(name, priority, duration)
+            self.current_time += 1  # Increment current_time after each job is completed
+
+def create_job(name, duration, priority, energy):
+    return Job(name, priority, duration, energy)
 
 def create_jobs(jobs_dict):
     jobs = []
@@ -63,9 +90,9 @@ def create_jobs(jobs_dict):
             for parent_job_name in job_info['depends_on']:
                 if parent_job_name in jobs_dict:
                     parent_job_info = jobs_dict[parent_job_name]
-                    parent_job = create_job(parent_job_name, duration=parent_job_info.get('duration', 1), priority=parent_job_info.get('priority', 1))
+                    parent_job = create_job(parent_job_name, duration=parent_job_info.get('duration', 1), priority=parent_job_info.get('priority', 1), energy=parent_job_info.get('energy', 1))
                     depends_on.add(parent_job)
-        job = create_job(job_name, duration=job_info.get('duration', 1), priority=job_info.get('priority', 1))
+        job = create_job(job_name, duration=job_info.get('duration', 1), priority=job_info.get('priority', 1), energy=job_info.get('energy', 1))
         job.depends_on = depends_on
         jobs.append(job)
     return jobs
@@ -73,36 +100,21 @@ def create_jobs(jobs_dict):
 
 if __name__ == "__main__":
     jobs_dict = {
-        'job1': {'duration': 2, 'priority': 1},
-        'job2': {'duration': 3, 'priority': 1},
-        'job3': {'duration': 1, 'priority': 3},
-        'job4': {'duration': 2, 'priority': 2},
-        'job5': {'duration': 3, 'priority': 1},
-        'job6': {'duration': 1, 'priority': 2},
-        'job7': {'duration': 4, 'priority': 1},
-        'job8': {'duration': 2, 'priority': 2, 'depends_on': ['job1', 'job2']},
-        'job9': {'duration': 3, 'priority': 1},
-        'job10': {'duration': 1, 'priority': 2, 'depends_on': ['job3', 'job4']},
-        'job11': {'duration': 2, 'priority': 1},
-        'job12': {'duration': 3, 'priority': 1},
-        'job13': {'duration': 1, 'priority': 3},
-        'job14': {'duration': 2, 'priority': 2},
-        'job15': {'duration': 3, 'priority': 1},
-        'job16': {'duration': 1, 'priority': 2},
-        'job17': {'duration': 4, 'priority': 1},
-        'job18': {'duration': 2, 'priority': 2, 'depends_on': ['job5', 'job6']},
-        'job19': {'duration': 3, 'priority': 1},
-        'job20': {'duration': 1, 'priority': 2, 'depends_on': ['job13', 'job14']}
+    'A': {'duration': 1, 'priority': 1, 'energy': 1},
+    'B': {'duration': 2, 'priority': 2, 'energy': 1},
+    'C': {'duration': 3, 'priority': 3, 'energy': 2, 'depends_on': {'B'}},
+    'D': {'duration': 4, 'priority': 4, 'energy': 3, 'depends_on': {'C'}},
+    'E': {'duration': 5, 'priority': 5, 'energy': 5},
     }
-
     jobs = create_jobs(jobs_dict)
+    random.shuffle(jobs)
 
     scheduler = Scheduler()
-
     for job in jobs:
         scheduler.add_job(job)
 
     scheduler.run()
+
 
 '''
 NOTE:
