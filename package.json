@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "child_process": "^1.0.2",
     "cron": "^2.3.0",
     "dotenv": "^16.0.3",
     "mysql2": "^3.3.0",
