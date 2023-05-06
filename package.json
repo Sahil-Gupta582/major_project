@@ -1,0 +1,17 @@
+{
+  "name": "major_project-main",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cron": "^2.3.0",
+    "dotenv": "^16.0.3",
+    "mysql2": "^3.3.0",
+    "sequelize": "^6.31.1"
+  }
+}
