@@ -3,7 +3,7 @@ const sequelize = require('./../dbConnection')
 
 const Process = sequelize.define('Process', {
     task_name:{
-        type: Sequelize.STRING,
+        type: Sequelize.INTEGER,
         allowNull: false,
         primaryKey: true
     },
