@@ -1,16 +1,23 @@
-# This is a sample Python script.
+import time
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from populate_sql_data import populate_sql
+
+from fetch_sql_data import fetch_updated_data
+
+from prremptive_framework import task_framework
+
+num_processors=4
+
+while True:
+
+    populate_sql()
+
+    updated_data=fetch_updated_data()
+
+    task_framework(updated_data,num_processors)
+
+    time.sleep(20)
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/

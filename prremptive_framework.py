@@ -292,6 +292,89 @@ class Individual:
         self.fitness = total_time + total_energy_consumption
 
 
+def task_framework(ref_dict,num_processors):
+
+    jobs_dict={}
+
+    for idx,val in enumerate(ref_dict.items()):
+        name=list(val)[0]
+        duration=list(val)[1][0]
+        energy=list(val)[1][1]
+        dependencies=list(val)[1][2]
+        jobs_dict[name] = Job(name, idx, duration, energy, dependencies)
+
+    num_tasks=len(ref_dict)
+
+    Job.jobs_dict=jobs_dict
+    
+    # Remove deadlocks
+    Job.remove_deadlocks()
+
+    # -------------------------
+    # MCT
+    # -------------------------
+
+    # Calculate minimum completion time
+    mct_time,mct_energy=Job.minimum_completion_time(num_processors)
+    print()
+    print()
+
+    # -------------------------
+    # GA
+    # -------------------------
+
+    # Assign tasks using Genetic Algorithm
+    population_size = 50  # Number of individuals in the population
+    num_generations = 100  # Number of generations for GA
+    tournament_size = 5  # Tournament size for parent selection
+    mutation_rate = 0.1  # Probability of mutation
+
+    ga_time,ga_energy=Job.assign_tasks_ga(num_processors, population_size, num_generations, tournament_size, mutation_rate)
+    print()
+    print()
+
+
+    #-------------------------
+    #PSO
+    #-------------------------
+
+    # Assign tasks using Particle Swarm Optimization
+    num_particles = 10  # Number of particles in the swarm
+    num_iterations = 100  # Number of iterations for PSO
+    inertia = 0.5  # Inertia weight
+    c1 = 1  # Cognitive component weight
+    c2 = 2  # Social component weight
+
+    pso_time,pso_energy=Job.assign_tasks_pso(num_processors, num_particles, num_iterations, inertia, c1, c2)
+
+    #-------------------------
+    #SUMMARY 
+    #-------------------------
+
+    summary_table = f'''
+    +-------------------+---------------------+-------------------------+
+    |  Number of        |                     {num_processors:<19}       |
+    |  Processors       |                                               |                         
+    +-------------------+---------------------+-------------------------+
+    |  Number of        |                    {num_tasks:<19}        |                         
+    |  Tasks            |                                               |                         
+    +-------------------+---------------------+-------------------------+
+    |   Algorithm       |  Final Completion   |   Total Energy Needed   |
+    |                   |        Time         |                         |
+    +-------------------+---------------------+-------------------------+
+    |      PSO          |   {pso_time:<18.2f}|    {pso_energy:<19.2f}  |
+    +-------------------+---------------------+-------------------------+
+    |      GA           |   {ga_time:<18.2f}|    {ga_energy:<19.2f}  |
+    +-------------------+---------------------+-------------------------+
+    |      MCT          |   {mct_time:<18.2f}|    {mct_energy:<19.2f}  |
+    +-------------------+---------------------+-------------------------+
+    '''
+
+
+    print(summary_table)
+
+
+
 if __name__ == '__main__':
     # Create job dictionary
 
