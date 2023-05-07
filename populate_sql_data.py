@@ -1,8 +1,8 @@
 import json
 import mysql.connector
 
-mysql_username = "root"
-mysql_password = "Devesh@@123"
+mysql_username = ""
+mysql_password = ""
 
 config = {
     'user': mysql_username,
