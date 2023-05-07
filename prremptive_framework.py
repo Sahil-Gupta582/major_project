@@ -72,7 +72,7 @@ class Job:
                             processor.current_time += job.duration
                             processor.energy_consumption += job.energy
                             job.finished = True
-                            print(f"Task {job.name} assigned to {processor.name}")
+                            print(f"Task {job.name} assigned to {processor.name} for {round(processor.current_time,3)} secs. with {round(processor.energy_consumption,3)} energy consumption")
 
             # Update dependencies and add newly available tasks
             for job in Job.jobs_dict.values():
@@ -82,11 +82,13 @@ class Job:
                         job.depends_on = set()
                         heapq.heappush(ready, job)
 
-        total_time = max(processor.current_time for processor in processors)
-        total_energy_consumption = sum(processor.energy_consumption for processor in processors)
-        print(f"Total completion time: {total_time}")
+        processor_times=[processor.current_time for processor in processors]
+        total_time = max(processor_times)
+        processor_energies=[processor.energy_consumption for processor in processors]
+        total_energy_consumption = sum(processor_energies)
+        print(f"\nTotal completion time: {total_time}")
         print(f"Total energy consumption: {total_energy_consumption}")
-        return total_time,total_energy_consumption
+        return total_time,total_energy_consumption,processor_energies,processor_times
 
 
     @staticmethod
@@ -133,13 +135,15 @@ class Job:
             processor.current_time += job.duration
             processor.energy_consumption += job.energy
             job.finished = True
-            print(f"Task {job.name} assigned to {processor.name}")
+            print(f"Task {job.name} assigned to {processor.name} for {round(processor.current_time,3)} secs. with {round(processor.energy_consumption,3)} energy consumption")
 
-        total_time = max(processor.current_time for processor in processors)
-        total_energy_consumption = sum(processor.energy_consumption for processor in processors)
-        print(f"Total completion time: {total_time}")
+        processor_times=[processor.current_time for processor in processors]
+        total_time = max(processor_times)
+        processor_energies=[processor.energy_consumption for processor in processors]
+        total_energy_consumption = sum(processor_energies)
+        print(f"\nTotal completion time: {total_time}")
         print(f"Total energy consumption: {total_energy_consumption}")
-        return total_time,total_energy_consumption
+        return total_time,total_energy_consumption,processor_energies,processor_times
 
 
     @staticmethod
@@ -187,13 +191,15 @@ class Job:
             processor.current_time += job.duration
             processor.energy_consumption += job.energy
             job.finished = True
-            print(f"Task {job.name} assigned to {processor.name}")
+            print(f"Task {job.name} assigned to {processor.name} for {round(processor.current_time,3)} secs. with {round(processor.energy_consumption,3)} energy consumption")
 
-        total_time = max(processor.current_time for processor in processors)
-        total_energy_consumption = sum(processor.energy_consumption for processor in processors)
-        print(f"Total completion time: {total_time}")
+        processor_times=[processor.current_time for processor in processors]
+        total_time = max(processor_times)
+        processor_energies=[processor.energy_consumption for processor in processors]
+        total_energy_consumption = sum(processor_energies)
+        print(f"\nTotal completion time: {total_time}")
         print(f"Total energy consumption: {total_energy_consumption}")
-        return total_time,total_energy_consumption
+        return total_time,total_energy_consumption,processor_energies,processor_times
 
 class Particle:
     def __init__(self, num_processors):
@@ -315,13 +321,26 @@ def task_framework(ref_dict,num_processors):
     # -------------------------
 
     # Calculate minimum completion time
-    mct_time,mct_energy=Job.minimum_completion_time(num_processors)
+    print()
+    mct_str='''
+--------------------
+|       MCT        |
+--------------------
+    '''
+    print(mct_str)
+    mct_time,mct_energy,processor_energies_mct,processor_times_mct=Job.minimum_completion_time(num_processors)
     print()
     print()
 
     # -------------------------
     # GA
     # -------------------------
+    ga_str='''
+--------------------
+|       GA         |
+--------------------
+    '''
+    print(ga_str)
 
     # Assign tasks using Genetic Algorithm
     population_size = 50  # Number of individuals in the population
@@ -329,7 +348,7 @@ def task_framework(ref_dict,num_processors):
     tournament_size = 5  # Tournament size for parent selection
     mutation_rate = 0.1  # Probability of mutation
 
-    ga_time,ga_energy=Job.assign_tasks_ga(num_processors, population_size, num_generations, tournament_size, mutation_rate)
+    ga_time,ga_energy,processor_energies_ga,processor_times_ga=Job.assign_tasks_ga(num_processors, population_size, num_generations, tournament_size, mutation_rate)
     print()
     print()
 
@@ -337,7 +356,12 @@ def task_framework(ref_dict,num_processors):
     #-------------------------
     #PSO
     #-------------------------
-
+    pso_str='''
+--------------------
+|       PSO        |
+--------------------
+    '''
+    print(pso_str)
     # Assign tasks using Particle Swarm Optimization
     num_particles = 10  # Number of particles in the swarm
     num_iterations = 100  # Number of iterations for PSO
@@ -345,35 +369,102 @@ def task_framework(ref_dict,num_processors):
     c1 = 1  # Cognitive component weight
     c2 = 2  # Social component weight
 
-    pso_time,pso_energy=Job.assign_tasks_pso(num_processors, num_particles, num_iterations, inertia, c1, c2)
-
+    pso_time,pso_energy,processor_energies_pso,processor_times_pso=Job.assign_tasks_pso(num_processors, num_particles, num_iterations, inertia, c1, c2)
+    print()
+    print()
     #-------------------------
     #SUMMARY 
     #-------------------------
+    summary_str='''
+\t\t\t------------------------
+\t\t\t|       SUMMARY        |
+\t\t\t------------------------
+    '''
+    print(summary_str)
 
     summary_table = f'''
-    +-------------------+---------------------+-------------------------+
-    |  Number of        |                     {num_processors:<19}       |
-    |  Processors       |                                               |                         
-    +-------------------+---------------------+-------------------------+
-    |  Number of        |                    {num_tasks:<19}        |                         
-    |  Tasks            |                                               |                         
-    +-------------------+---------------------+-------------------------+
-    |   Algorithm       |  Final Completion   |   Total Energy Needed   |
-    |                   |        Time         |                         |
-    +-------------------+---------------------+-------------------------+
-    |      PSO          |   {pso_time:<18.2f}|    {pso_energy:<19.2f}  |
-    +-------------------+---------------------+-------------------------+
-    |      GA           |   {ga_time:<18.2f}|    {ga_energy:<19.2f}  |
-    +-------------------+---------------------+-------------------------+
-    |      MCT          |   {mct_time:<18.2f}|    {mct_energy:<19.2f}  |
-    +-------------------+---------------------+-------------------------+
+\t+-------------------+---------------------+-------------------------+
+\t|  Number of        |                     {num_processors:<19}       |
+\t|  Processors       |                                               |                         
+\t+-------------------+---------------------+-------------------------+
+\t|  Number of        |                    {num_tasks:<19}        |                         
+\t|  Tasks            |                                               |                         
+\t+-------------------+---------------------+-------------------------+
+\t|   Algorithm       |  Final Completion   |   Total Energy Needed   |
+\t|                   |        Time         |                         |
+\t+-------------------+---------------------+-------------------------+
+\t|      PSO          |   {pso_time:<18.2f}|    {pso_energy:<19.2f}  |
+\t+-------------------+---------------------+-------------------------+
+\t|      GA           |   {ga_time:<18.2f}|    {ga_energy:<19.2f}  |
+\t+-------------------+---------------------+-------------------------+
+\t|      MCT          |   {mct_time:<18.2f}|    {mct_energy:<19.2f}  |
+\t+-------------------+---------------------+-------------------------+
     '''
-
-
     print(summary_table)
 
+    processor_str='''
+\t\t\t--------------------------------------
+\t\t\t|      TOTAL ENERGY/PROCESSOR        |
+\t\t\t--------------------------------------
+    '''
+    print(processor_str)
 
+    algorithm_energy = [
+        {"algorithm": "PSO", "energies": processor_energies_pso},
+        {"algorithm": "GA", "energies": processor_energies_ga},
+        {"algorithm": "MCT", "energies": processor_energies_mct}
+    ]
+
+    # Calculate the required field width based on the longest algorithm name and energy value
+    max_algorithm_width = max(len(data["algorithm"]) for data in algorithm_energy) + 2
+    max_energy_width = max(len(str(round(energy, 2))) for data in algorithm_energy for energy in data["energies"]) + 2
+
+    # Create the table string dynamically
+    table_string = "\t\t-" + "-" * max_algorithm_width + 11*"-" + "-".join("-" * max_energy_width for _ in range(num_processors)) + "-\n"
+    table_string += "\t\t| Algorithm" + " " * (max_algorithm_width - len("Algorithm")) + " | " + " | ".join(f" P{i} " for i in range(1, num_processors + 1)) + " |\n"
+    table_string += "\t\t-" + "-" * max_algorithm_width + 11*"-" + "-".join("-" * max_energy_width for _ in range(num_processors)) + "-\n"
+
+    for data in algorithm_energy:
+        algorithm = data["algorithm"]
+        energies = data["energies"]
+        table_string += "\t\t| " + algorithm + " " * (max_algorithm_width - len(algorithm)) + " | " + " | ".join(f" {str(round(energy, 2)):^{max_energy_width - 2}} " for energy in energies) + " |\n"
+
+    table_string += "\t\t-" + "-" * max_algorithm_width + 11*"-" + "-".join("-" * max_energy_width for _ in range(num_processors)) + "-\n"
+
+
+    print(table_string)
+    
+    processor_str='''
+\t\t\t--------------------------------------
+\t\t\t|      TOTAL TIME/PROCESSOR          |
+\t\t\t--------------------------------------
+    '''
+    print(processor_str)
+
+    algorithm_energy = [
+        {"algorithm": "PSO", "energies": processor_times_pso},
+        {"algorithm": "GA", "energies": processor_times_ga},
+        {"algorithm": "MCT", "energies": processor_times_mct}
+    ]
+
+    # Calculate the required field width based on the longest algorithm name and energy value
+    max_algorithm_width = max(len(data["algorithm"]) for data in algorithm_energy) + 2
+    max_energy_width = max(len(str(round(energy, 2))) for data in algorithm_energy for energy in data["energies"]) + 2
+
+    # Create the table string dynamically
+    time_table_str = "\t\t-" + "-" * max_algorithm_width + 11*"-" + "-".join("-" * max_energy_width for _ in range(num_processors)) + "-\n"
+    time_table_str += "\t\t| Algorithm" + " " * (max_algorithm_width - len("Algorithm")) + " | " + " | ".join(f" P{i} " for i in range(1, num_processors + 1)) + " |\n"
+    time_table_str += "\t\t-" + "-" * max_algorithm_width + 11*"-" + "-".join("-" * max_energy_width for _ in range(num_processors)) + "-\n"
+
+    for data in algorithm_energy:
+        algorithm = data["algorithm"]
+        energies = data["energies"]
+        time_table_str += "\t\t| " + algorithm + " " * (max_algorithm_width - len(algorithm)) + " | " + " | ".join(f" {str(round(energy, 2)):^{max_energy_width - 2}} " for energy in energies) + " |\n"
+
+    time_table_str += "\t\t-" + "-" * max_algorithm_width + 11*"-" + "-".join("-" * max_energy_width for _ in range(num_processors)) + "-\n"
+
+
+    print(time_table_str)
 
 if __name__ == '__main__':
     # Create job dictionary
@@ -390,8 +481,6 @@ if __name__ == '__main__':
         dependencies = set(random.sample(range(1, i), dependencies_count))
 
         jobs_dict[name] = Job(name, i, duration, energy, dependencies)
-        print(name, i, duration, energy, dependencies)
-        print()
 
 
     num_processors = 4  # Number of processors to assign tasks to
@@ -405,13 +494,26 @@ if __name__ == '__main__':
     # -------------------------
 
     # Calculate minimum completion time
-    mct_time,mct_energy=Job.minimum_completion_time(num_processors)
+    print()
+    mct_str='''
+--------------------
+|       MCT        |
+--------------------
+    '''
+    print(mct_str)
+    mct_time,mct_energy,processor_energies_mct,processor_times_mct=Job.minimum_completion_time(num_processors)
     print()
     print()
 
     # -------------------------
     # GA
     # -------------------------
+    ga_str='''
+--------------------
+|       GA         |
+--------------------
+    '''
+    print(ga_str)
 
     # Assign tasks using Genetic Algorithm
     population_size = 50  # Number of individuals in the population
@@ -419,7 +521,7 @@ if __name__ == '__main__':
     tournament_size = 5  # Tournament size for parent selection
     mutation_rate = 0.1  # Probability of mutation
 
-    ga_time,ga_energy=Job.assign_tasks_ga(num_processors, population_size, num_generations, tournament_size, mutation_rate)
+    ga_time,ga_energy,processor_energies_ga,processor_times_ga=Job.assign_tasks_ga(num_processors, population_size, num_generations, tournament_size, mutation_rate)
     print()
     print()
 
@@ -427,7 +529,12 @@ if __name__ == '__main__':
     #-------------------------
     #PSO
     #-------------------------
-
+    pso_str='''
+--------------------
+|       PSO        |
+--------------------
+    '''
+    print(pso_str)
     # Assign tasks using Particle Swarm Optimization
     num_particles = 10  # Number of particles in the swarm
     num_iterations = 100  # Number of iterations for PSO
@@ -435,30 +542,99 @@ if __name__ == '__main__':
     c1 = 1  # Cognitive component weight
     c2 = 2  # Social component weight
 
-    pso_time,pso_energy=Job.assign_tasks_pso(num_processors, num_particles, num_iterations, inertia, c1, c2)
-
+    pso_time,pso_energy,processor_energies_pso,processor_times_pso=Job.assign_tasks_pso(num_processors, num_particles, num_iterations, inertia, c1, c2)
+    print()
+    print()
     #-------------------------
     #SUMMARY 
     #-------------------------
+    summary_str='''
+\t\t\t------------------------
+\t\t\t|       SUMMARY        |
+\t\t\t------------------------
+    '''
+    print(summary_str)
 
     summary_table = f'''
-    +-------------------+---------------------+-------------------------+
-    |  Number of        |                     {num_processors:<19}       |
-    |  Processors       |                                               |                         
-    +-------------------+---------------------+-------------------------+
-    |  Number of        |                    {num_tasks:<19}        |                         
-    |  Tasks            |                                               |                         
-    +-------------------+---------------------+-------------------------+
-    |   Algorithm       |  Final Completion   |   Total Energy Needed   |
-    |                   |        Time         |                         |
-    +-------------------+---------------------+-------------------------+
-    |      PSO          |   {pso_time:<18.2f}|    {pso_energy:<19.2f}  |
-    +-------------------+---------------------+-------------------------+
-    |      GA           |   {ga_time:<18.2f}|    {ga_energy:<19.2f}  |
-    +-------------------+---------------------+-------------------------+
-    |      MCT          |   {mct_time:<18.2f}|    {mct_energy:<19.2f}  |
-    +-------------------+---------------------+-------------------------+
+\t+-------------------+---------------------+-------------------------+
+\t|  Number of        |                     {num_processors:<19}       |
+\t|  Processors       |                                               |                         
+\t+-------------------+---------------------+-------------------------+
+\t|  Number of        |                    {num_tasks:<19}        |                         
+\t|  Tasks            |                                               |                         
+\t+-------------------+---------------------+-------------------------+
+\t|   Algorithm       |  Final Completion   |   Total Energy Needed   |
+\t|                   |        Time         |                         |
+\t+-------------------+---------------------+-------------------------+
+\t|      PSO          |   {pso_time:<18.2f}|    {pso_energy:<19.2f}  |
+\t+-------------------+---------------------+-------------------------+
+\t|      GA           |   {ga_time:<18.2f}|    {ga_energy:<19.2f}  |
+\t+-------------------+---------------------+-------------------------+
+\t|      MCT          |   {mct_time:<18.2f}|    {mct_energy:<19.2f}  |
+\t+-------------------+---------------------+-------------------------+
     '''
-
-
     print(summary_table)
+
+    processor_str='''
+\t\t\t--------------------------------------
+\t\t\t|      TOTAL ENERGY/PROCESSOR        |
+\t\t\t--------------------------------------
+    '''
+    print(processor_str)
+
+    algorithm_energy = [
+        {"algorithm": "PSO", "energies": processor_energies_pso},
+        {"algorithm": "GA", "energies": processor_energies_ga},
+        {"algorithm": "MCT", "energies": processor_energies_mct}
+    ]
+
+    # Calculate the required field width based on the longest algorithm name and energy value
+    max_algorithm_width = max(len(data["algorithm"]) for data in algorithm_energy) + 2
+    max_energy_width = max(len(str(round(energy, 2))) for data in algorithm_energy for energy in data["energies"]) + 2
+
+    # Create the table string dynamically
+    table_string = "\t\t-" + "-" * max_algorithm_width + 11*"-" + "-".join("-" * max_energy_width for _ in range(num_processors)) + "-\n"
+    table_string += "\t\t| Algorithm" + " " * (max_algorithm_width - len("Algorithm")) + " | " + " | ".join(f" P{i} " for i in range(1, num_processors + 1)) + " |\n"
+    table_string += "\t\t-" + "-" * max_algorithm_width + 11*"-" + "-".join("-" * max_energy_width for _ in range(num_processors)) + "-\n"
+
+    for data in algorithm_energy:
+        algorithm = data["algorithm"]
+        energies = data["energies"]
+        table_string += "\t\t| " + algorithm + " " * (max_algorithm_width - len(algorithm)) + " | " + " | ".join(f" {str(round(energy, 2)):^{max_energy_width - 2}} " for energy in energies) + " |\n"
+
+    table_string += "\t\t-" + "-" * max_algorithm_width + 11*"-" + "-".join("-" * max_energy_width for _ in range(num_processors)) + "-\n"
+
+
+    print(table_string)
+    
+    processor_str='''
+\t\t\t--------------------------------------
+\t\t\t|      TOTAL TIME/PROCESSOR          |
+\t\t\t--------------------------------------
+    '''
+    print(processor_str)
+
+    algorithm_energy = [
+        {"algorithm": "PSO", "energies": processor_times_pso},
+        {"algorithm": "GA", "energies": processor_times_ga},
+        {"algorithm": "MCT", "energies": processor_times_mct}
+    ]
+
+    # Calculate the required field width based on the longest algorithm name and energy value
+    max_algorithm_width = max(len(data["algorithm"]) for data in algorithm_energy) + 2
+    max_energy_width = max(len(str(round(energy, 2))) for data in algorithm_energy for energy in data["energies"]) + 2
+
+    # Create the table string dynamically
+    time_table_str = "\t\t-" + "-" * max_algorithm_width + 11*"-" + "-".join("-" * max_energy_width for _ in range(num_processors)) + "-\n"
+    time_table_str += "\t\t| Algorithm" + " " * (max_algorithm_width - len("Algorithm")) + " | " + " | ".join(f" P{i} " for i in range(1, num_processors + 1)) + " |\n"
+    time_table_str += "\t\t-" + "-" * max_algorithm_width + 11*"-" + "-".join("-" * max_energy_width for _ in range(num_processors)) + "-\n"
+
+    for data in algorithm_energy:
+        algorithm = data["algorithm"]
+        energies = data["energies"]
+        time_table_str += "\t\t| " + algorithm + " " * (max_algorithm_width - len(algorithm)) + " | " + " | ".join(f" {str(round(energy, 2)):^{max_energy_width - 2}} " for energy in energies) + " |\n"
+
+    time_table_str += "\t\t-" + "-" * max_algorithm_width + 11*"-" + "-".join("-" * max_energy_width for _ in range(num_processors)) + "-\n"
+
+
+    print(time_table_str)

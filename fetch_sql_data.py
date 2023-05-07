@@ -1,7 +1,7 @@
 import mysql.connector
 
 config = {
-    'user': "",
+    'user': "root",
     'password': "",
     'host': 'localhost',
     'database': 'test_db_2',
@@ -14,7 +14,7 @@ def fetch_updated_data():
 
     cursor = cnx.cursor()
 
-    table_name = 'task_table'
+    table_name = 'task_table_temp2'
 
     query = f'SELECT * FROM {table_name}'
     cursor.execute(query)

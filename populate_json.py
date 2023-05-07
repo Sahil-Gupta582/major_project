@@ -7,6 +7,9 @@ task_id = 1
 
 filename = "new_tasks.json"
 
+from populate_sql_data import populate_sql
+
+
 while True:
     dependencies_count = min(task_id - 1, random.randint(0, 3))
     dependencies = list(set(random.sample(range(1, task_id), dependencies_count)))
@@ -30,5 +33,7 @@ while True:
     print(f"Data appended to {filename}")
 
     task_id += 1
+
+    populate_sql()
 
     time.sleep(5)

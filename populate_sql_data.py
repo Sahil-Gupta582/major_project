@@ -1,12 +1,10 @@
 import json
 import mysql.connector
 
-mysql_username = ""
-mysql_password = ""
 
 config = {
-    'user': mysql_username,
-    'password': mysql_password,
+    'user': "root",
+    'password': "",
     'host': 'localhost',
     'database': 'test_db_2'
 }
@@ -16,7 +14,7 @@ def populate_sql():
     cursor = conn.cursor()
 
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS task_table (
+        CREATE TABLE IF NOT EXISTS task_table_temp2 (
             task_id INT AUTO_INCREMENT PRIMARY KEY,
             task_name VARCHAR(255),
             completion_time FLOAT,
@@ -37,7 +35,7 @@ def populate_sql():
             dependencies = json.dumps(dependencies)
         
         query = """
-            INSERT INTO task_table (task_name, completion_time, energy_needed, dependencies)
+            INSERT INTO task_table_temp2 (task_name, completion_time, energy_needed, dependencies)
             VALUES (%s, %s, %s, %s)
         """
         values = (task_name, completion_time, energy_needed, dependencies)
