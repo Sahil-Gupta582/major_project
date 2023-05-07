@@ -36,4 +36,4 @@ while True:
 
     populate_sql()
 
-    time.sleep(5)
+    time.sleep(15)

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Example VivagraphJS Graph</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.6/standalone/umd/vis-network.min.js"></script>
+  <style type="text/css">
+    #graph {
+      width: 600px;
+      height: 400px;
+    }
+  </style>
+</head>
+<body>
+  <div id="graph"></div>
+
+  <script>
+    // Sample nodes and edges data
+    var nodes = [
+      {id: 1, label: 'Node 1'},
+      {id: 2, label: 'Node 2'},
+      {id: 3, label: 'Node 3'},
+      {id: 4, label: 'Node 4'}
+    ];
+
+    var edges = [
+      {from: 1, to: 2},
+      {from: 2, to: 3},
+      {from: 3, to: 4},
+      {from: 4, to: 1}
+    ];
+
+    // Create a new graph instance
+    var container = document.getElementById('graph');
+    var data = {
+      nodes: nodes,
+      edges: edges
+    };
+    var options = {};
+    var network = new vis.Network(container, data, options);
+
+    // Function to update the graph with new nodes and edges
+    function updateGraph(newNodes, newEdges) {
+      network.destroy();
+
+    // Create a new dataset using the updated nodes and edges
+      var dataset = {
+        nodes: newNodes,
+        edges: newEdges
+      };
+
+      // Create a new network with the updated dataset
+      network = new vis.Network(container, dataset, options);
+    }
+
+    function listenForUpdates() {
+      // Use setInterval to make the API request every 3 seconds
+      setInterval(function() {
+        // Replace the following with your own backend API call to get updated nodes and edges
+        fetch('http://localhost:3000/api/get-updated-graph')
+          .then(function(response) {
+            return response.json();
+          })
+          .then(function(data) {
+            // Update the graph with the new nodes and edges
+            updateGraph(data.nodes, data.edges);
+          });
+      }, 10000); 
+    }
+    // Start listening for updates
+    listenForUpdates();
+  </script>
+</body>
+</html>
