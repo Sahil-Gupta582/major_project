@@ -466,6 +466,13 @@ def task_framework(ref_dict,num_processors):
 
     print(time_table_str)
 
+    return {
+            "MCT":[mct_time,mct_energy,processor_energies_mct,processor_times_mct],
+            "GA":[ga_time,ga_energy,processor_energies_ga,processor_times_ga],
+            "PSO":[pso_time,pso_energy,processor_energies_pso,processor_times_pso],
+            "num_tasks":num_tasks
+        }
+
 if __name__ == '__main__':
     # Create job dictionary
 
