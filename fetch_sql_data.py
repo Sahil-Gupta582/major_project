@@ -2,7 +2,7 @@ import mysql.connector
 
 config = {
     'user': "root",
-    'password': "",
+    'password': "Sahil@2001",
     'host': 'localhost',
     'database': 'test_db_2',
     'raise_on_warnings': True
