@@ -52,6 +52,10 @@ class Job:
 
     @staticmethod
     def minimum_completion_time(num_processors=1):
+        task_start_time,task_finish_time=[],[]
+
+        task_name,processor_name=[],[]
+
         ready = [job for job in Job.jobs_dict.values() if not job.depends_on]
         heapq.heapify(ready)
         processors = [Processor(f'Processor {i+1}') for i in range(num_processors)]
@@ -68,8 +72,16 @@ class Job:
                     job = heapq.heappop(ready)
                     if not any(job.name == task.name and task.finished for task in Job.jobs_dict.values()):
                         if processor.current_time + job.duration <= processor.energy:
+
+                            task_name.append(job.name)
+                            processor_name.append(processor.name)
+                            
                             job.start_time = processor.current_time
+                            task_start_time.append(job.start_time)
+
                             processor.current_time += job.duration
+                            task_finish_time.append(processor.current_time)
+
                             processor.energy_consumption += job.energy
                             job.finished = True
                             print(f"Task {job.name} assigned to {processor.name} for {round(processor.current_time,3)} secs. with {round(processor.energy_consumption,3)} energy consumption")
@@ -88,7 +100,15 @@ class Job:
         total_energy_consumption = sum(processor_energies)
         print(f"\nTotal completion time: {total_time}")
         print(f"Total energy consumption: {total_energy_consumption}")
-        return total_time,total_energy_consumption,processor_energies,processor_times
+
+        processor_log={
+            "task_name": task_name,
+            "task_start_time":task_start_time,
+            "task_end_time":task_finish_time,
+            "processor_name":processor_name
+        }
+
+        return total_time,total_energy_consumption,processor_energies,processor_times,processor_log
 
 
     @staticmethod
@@ -104,6 +124,12 @@ class Job:
 
     @staticmethod
     def assign_tasks_pso(num_processors=1, num_particles=10, num_iterations=100, inertia=0.5, c1=1, c2=2):
+
+        task_name=[]
+        task_start_time=[]
+        task_finish_time=[]
+        processor_name=[]
+
         # Initialize particles
         particles = []
         for _ in range(num_particles):
@@ -131,8 +157,16 @@ class Job:
             processor_index = global_best_positions[i]
             processor = processors[processor_index]
             job = Job.jobs_dict[job_name]
+
             job.start_time = processor.current_time
+            task_start_time.append(job.start_time)
+
             processor.current_time += job.duration
+            task_finish_time.append(processor.current_time)
+
+            task_name.append(job.name)
+            processor_name.append(processor.name)            
+            
             processor.energy_consumption += job.energy
             job.finished = True
             print(f"Task {job.name} assigned to {processor.name} for {round(processor.current_time,3)} secs. with {round(processor.energy_consumption,3)} energy consumption")
@@ -143,11 +177,25 @@ class Job:
         total_energy_consumption = sum(processor_energies)
         print(f"\nTotal completion time: {total_time}")
         print(f"Total energy consumption: {total_energy_consumption}")
-        return total_time,total_energy_consumption,processor_energies,processor_times
+
+
+        processor_log={
+            "task_name": task_name,
+            "task_start_time":task_start_time,
+            "task_end_time":task_finish_time,
+            "processor_name":processor_name
+        }
+
+        return total_time,total_energy_consumption,processor_energies,processor_times,processor_log
 
 
     @staticmethod
     def assign_tasks_ga(num_processors=1, population_size=50, num_generations=100, tournament_size=5, mutation_rate=0.1):
+        task_name=[]
+        task_start_time=[]
+        task_finish_time=[]
+        processor_name=[]
+
         # Initialize population
         population = []
         for _ in range(population_size):
@@ -187,9 +235,18 @@ class Job:
             processor_index = best_individual.sequence[i]
             processor = processors[processor_index]
             job = Job.jobs_dict[job_name]
+            
             job.start_time = processor.current_time
+            task_start_time.append(job.start_time)
+
             processor.current_time += job.duration
+            task_finish_time.append(processor.current_time)
+
             processor.energy_consumption += job.energy
+
+            task_name.append(job.name)
+            processor_name.append(processor.name)
+            
             job.finished = True
             print(f"Task {job.name} assigned to {processor.name} for {round(processor.current_time,3)} secs. with {round(processor.energy_consumption,3)} energy consumption")
 
@@ -199,7 +256,15 @@ class Job:
         total_energy_consumption = sum(processor_energies)
         print(f"\nTotal completion time: {total_time}")
         print(f"Total energy consumption: {total_energy_consumption}")
-        return total_time,total_energy_consumption,processor_energies,processor_times
+
+        processor_log={
+            "task_name": task_name,
+            "task_start_time":task_start_time,
+            "task_end_time":task_finish_time,
+            "processor_name":processor_name
+        }
+
+        return total_time,total_energy_consumption,processor_energies,processor_times,processor_log
 
 class Particle:
     def __init__(self, num_processors):
@@ -328,7 +393,8 @@ def task_framework(ref_dict,num_processors):
 --------------------
     '''
     print(mct_str)
-    mct_time,mct_energy,processor_energies_mct,processor_times_mct=Job.minimum_completion_time(num_processors)
+    mct_time,mct_energy,processor_energies_mct,processor_times_mct,processor_log_mct=Job.minimum_completion_time(num_processors)
+    print(processor_log_mct)
     print()
     print()
 
@@ -348,7 +414,8 @@ def task_framework(ref_dict,num_processors):
     tournament_size = 5  # Tournament size for parent selection
     mutation_rate = 0.1  # Probability of mutation
 
-    ga_time,ga_energy,processor_energies_ga,processor_times_ga=Job.assign_tasks_ga(num_processors, population_size, num_generations, tournament_size, mutation_rate)
+    ga_time,ga_energy,processor_energies_ga,processor_times_ga,processor_log_ga=Job.assign_tasks_ga(num_processors, population_size, num_generations, tournament_size, mutation_rate)
+    print(processor_log_ga)
     print()
     print()
 
@@ -369,7 +436,8 @@ def task_framework(ref_dict,num_processors):
     c1 = 1  # Cognitive component weight
     c2 = 2  # Social component weight
 
-    pso_time,pso_energy,processor_energies_pso,processor_times_pso=Job.assign_tasks_pso(num_processors, num_particles, num_iterations, inertia, c1, c2)
+    pso_time,pso_energy,processor_energies_pso,processor_times_pso,processor_log_pso=Job.assign_tasks_pso(num_processors, num_particles, num_iterations, inertia, c1, c2)
+    print(processor_log_pso)
     print()
     print()
     #-------------------------
@@ -470,6 +538,9 @@ def task_framework(ref_dict,num_processors):
             "MCT":[mct_time,mct_energy,processor_energies_mct,processor_times_mct],
             "GA":[ga_time,ga_energy,processor_energies_ga,processor_times_ga],
             "PSO":[pso_time,pso_energy,processor_energies_pso,processor_times_pso],
+            "processor_log_mct":processor_log_mct,
+            "processor_log_ga":processor_log_ga,
+            "processor_log_pso":processor_log_pso,
             "num_tasks":num_tasks
         }
 
@@ -508,7 +579,8 @@ if __name__ == '__main__':
 --------------------
     '''
     print(mct_str)
-    mct_time,mct_energy,processor_energies_mct,processor_times_mct=Job.minimum_completion_time(num_processors)
+    mct_time,mct_energy,processor_energies_mct,processor_times_mct,processor_log_mct=Job.minimum_completion_time(num_processors)
+    print(processor_log_mct)
     print()
     print()
 
@@ -528,7 +600,8 @@ if __name__ == '__main__':
     tournament_size = 5  # Tournament size for parent selection
     mutation_rate = 0.1  # Probability of mutation
 
-    ga_time,ga_energy,processor_energies_ga,processor_times_ga=Job.assign_tasks_ga(num_processors, population_size, num_generations, tournament_size, mutation_rate)
+    ga_time,ga_energy,processor_energies_ga,processor_times_ga,processor_log_ga=Job.assign_tasks_ga(num_processors, population_size, num_generations, tournament_size, mutation_rate)
+    print(processor_log_ga)
     print()
     print()
 
@@ -549,7 +622,8 @@ if __name__ == '__main__':
     c1 = 1  # Cognitive component weight
     c2 = 2  # Social component weight
 
-    pso_time,pso_energy,processor_energies_pso,processor_times_pso=Job.assign_tasks_pso(num_processors, num_particles, num_iterations, inertia, c1, c2)
+    pso_time,pso_energy,processor_energies_pso,processor_times_pso,processor_log_pso=Job.assign_tasks_pso(num_processors, num_particles, num_iterations, inertia, c1, c2)
+    print(processor_log_pso)
     print()
     print()
     #-------------------------

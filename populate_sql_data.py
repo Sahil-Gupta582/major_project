@@ -4,9 +4,9 @@ import mysql.connector
 
 config = {
     'user': "root",
-    'password': "",
+    'password': "Devesh@@123",
     'host': 'localhost',
-    'database': 'testDB'
+    'database': 'test_db_2_1'
 }
 
 def populate_sql():
@@ -14,7 +14,7 @@ def populate_sql():
     cursor = conn.cursor()
 
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS task_table_temp2 (
+        CREATE TABLE IF NOT EXISTS task_table_temp3_2_1_4 (
             task_id INT AUTO_INCREMENT PRIMARY KEY,
             task_name VARCHAR(255),
             completion_time FLOAT,
@@ -35,7 +35,7 @@ def populate_sql():
             dependencies = json.dumps(dependencies)
         
         query = """
-            INSERT INTO task_table_temp2 (task_name, completion_time, energy_needed, dependencies)
+            INSERT INTO task_table_temp3_2_1_4 (task_name, completion_time, energy_needed, dependencies)
             VALUES (%s, %s, %s, %s)
         """
         values = (task_name, completion_time, energy_needed, dependencies)
